@@ -110,6 +110,7 @@ data DataSourceIndex =   Uint8DataSourceIndex -- ^ Read one byte at the position
                          }
   deriving (Eq, Show, Generic)
 
+-- | A definition specifies how to convert raw data from the asset name into a named type with a defined type.
 data Definitions =    Number -- ^ A numeral definition.
                       { 
                         nuDefinitionName:: !BuiltinByteString, -- ^ The name of the definition. Definition names must be unique.
@@ -176,32 +177,33 @@ data Definitions =    Number -- ^ A numeral definition.
                       { 
                         dlDefinitionName:: !BuiltinByteString, -- ^ The name of the definition. Definition names must be unique.
                         dlMimeType:: !BuiltinByteString,       -- ^ The image MIME type.
-                        dlLayers:: ![DataSourceIndex]          -- ^ The index in the data source
+                        dlLayers:: ![DataSourceIndex]          -- ^ The indices of the layers.
                       }
-                    | DataSourceFile
+                    | DataSourceFile -- A data sourced file
                       { 
-                        dfDefinitionName:: !BuiltinByteString,
-                        dfMediaType:: !BuiltinByteString,
-                        dfDataSource:: !BuiltinByteString,
-                        dfIndex:: !DataSourceIndex 
+                        dfDefinitionName:: !BuiltinByteString, -- ^ The name of the definition. Definition names must be unique.
+                        dfMediaType:: !BuiltinByteString,      -- ^ The file media type.
+                        dfDataSource:: !BuiltinByteString,     -- ^ The name of the data source.
+                        dfIndex:: !DataSourceIndex             -- ^ The index in the data source.
                       }
                     | DataSourceFiles
                       { 
-                        dfsDefinitionName:: !BuiltinByteString,
-                        dfsMediaType:: !BuiltinByteString,
-                        dfsFiles :: ![BuiltinByteString]
+                        dfsDefinitionName:: !BuiltinByteString, -- ^ The name of the definition. Definition names must be unique.
+                        dfsMediaType:: !BuiltinByteString,      -- ^ The file media type.
+                        dfsFiles :: ![BuiltinByteString]        -- ^ The indices of the files.
                       }
                     | SubDefinitions
                       { 
-                        suDefinitionName:: !BuiltinByteString,
-                        suSubDefinitions :: ![Definitions]
-                      } 
+                        suDefinitionName:: !BuiltinByteString, -- ^ The name of the definition. Definition names must be unique.
+                        suSubDefinitions :: ![Definitions]     -- ^ The indices of the files.
+                      }
   deriving (Eq, Show, Generic)
 
+-- | A blueprint specifies how to create metadata definitions from the asset name.
 data Blueprint = Blueprint {
-  bFungibility:: !Fungibility,
-  bDataSources:: ![DataSource],
-  bDefinitions:: ![Definitions]
+  bFungibility:: !Fungibility,  -- ^ The fungibility hint.
+  bDataSources:: ![DataSource], -- ^ The data sources defined for this blueprint.
+  bDefinitions:: ![Definitions] -- ^ The list of definitions.
 } deriving (Eq, Show, Generic)
 
 -- LIFT TO PLUTUS  ------------------------------------------------------------
