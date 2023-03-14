@@ -1,2 +1,1 @@
-# token-metadata-synthesizer
-typescript module to synthetize asset metadata from a asset name and a model
+Blueprints allows you to specify how off-chain code can compute ephemeral metadata from state serializind in the asset name of a token.
