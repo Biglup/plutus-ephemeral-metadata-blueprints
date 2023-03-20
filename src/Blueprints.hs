@@ -41,7 +41,8 @@ module Blueprints
   Definitions(..),
   Fungibility(..),
   NumberType(..),
-  StringEncoding(..)
+  StringEncoding(..),
+  DataSourceIndex(..)
 ) where
 
 -- IMPORTS --------------------------------------------------------------------
@@ -58,8 +59,6 @@ import Text.Show ( Show )
 -- | between the character representation and the byte representation is called string encoding.
 data StringEncoding =  Ascii -- ^ An ASCII character is 8 bits (1 byte).
                      | Utf8  -- ^ A Unicode character in UTF-8 encoding is between 8 bits (1 byte) and 32 bits (4 bytes).
-                     | Utf16 -- ^ A Unicode character in UTF-16 encoding is between 16 bits (2 bytes) and 32 bits (4 bytes).
-                     | Utf32 -- ^ A Unicode character in UTF-32 encoding is always 32 bits (4 bytes).
                      | Hex   -- ^ A hex encoded character is 8 bits (1 byte), every byte will be represented with two alphanumeric characters.
      deriving (Eq, Show, Generic)
 
@@ -102,11 +101,13 @@ data DataSource =   Inline -- ^ Inline data sources are embeeded in the blueprin
 -- | Specifies how to read a datasource index from the token name.
 data DataSourceIndex =   Uint8DataSourceIndex -- ^ Read one byte at the position dIndex. (index can go from 0-255)
                          {
+                           dsi8Name:: !BuiltinByteString,  -- ^ The name of the data source.
                            dsi8Index:: !Integer  -- ^ The position of the byte in the token name.
                          } 
                        | Uint16DataSourceIndex -- ^ Read two bytes at the position dIndex. (index can go from 0-65535)
                          {
-                           dsi16dIndex:: !Integer   -- ^ The position of the byte in the token name.
+                           dsi16Name:: !BuiltinByteString,  -- ^ The name of the data source.
+                           dsi16Index:: !Integer   -- ^ The position of the byte in the token name.
                          }
   deriving (Eq, Show, Generic)
 
@@ -163,14 +164,12 @@ data Definitions =    Number -- ^ A numeral definition.
                     | DataSourceString -- A data sourced string.
                       { 
                         dsDefinitionName:: !BuiltinByteString, -- ^ The name of the definition. Definition names must be unique.
-                        dsDataSource:: !BuiltinByteString,     -- ^ The name of the data source.
                         dsIndex:: !DataSourceIndex             -- ^ The index in the data source.
                       }
                     | DataSourceImage -- A data sourced image.
                       { 
                         diDefinitionName:: !BuiltinByteString, -- ^ The name of the definition. Definition names must be unique.
                         diMimeType:: !BuiltinByteString,       -- ^ The image MIME type.
-                        diDataSource:: !BuiltinByteString,     -- ^ The name of the data source.
                         diIndex:: !DataSourceIndex             -- ^ The index in the data source.
                       }
                     | DataSourceLayeredImage -- A data sourced layered image.
@@ -183,7 +182,6 @@ data Definitions =    Number -- ^ A numeral definition.
                       { 
                         dfDefinitionName:: !BuiltinByteString, -- ^ The name of the definition. Definition names must be unique.
                         dfMediaType:: !BuiltinByteString,      -- ^ The file media type.
-                        dfDataSource:: !BuiltinByteString,     -- ^ The name of the data source.
                         dfIndex:: !DataSourceIndex             -- ^ The index in the data source.
                       }
                     | DataSourceFiles
@@ -191,6 +189,16 @@ data Definitions =    Number -- ^ A numeral definition.
                         dfsDefinitionName:: !BuiltinByteString, -- ^ The name of the definition. Definition names must be unique.
                         dfsMediaType:: !BuiltinByteString,      -- ^ The file media type.
                         dfsFiles :: ![BuiltinByteString]        -- ^ The indices of the files.
+                      }
+                    |  ConstantNumber -- ^ A constant numeral definition.
+                      { 
+                        cnuDefinitionName:: !BuiltinByteString, -- ^ The name of the definition. Definition names must be unique.
+                        cnuValue:: !Integer                     -- ^ The constant value.
+                      }
+                    | ConstantString -- ^ A constant string definition.
+                      {
+                        cstDefinitionName:: !BuiltinByteString, -- ^ The name of the definition. Definition names must be unique.
+                        cstValue:: !BuiltinByteString           -- ^ The constant value.
                       }
                     | SubDefinitions
                       { 
@@ -211,9 +219,7 @@ data Blueprint = Blueprint {
 PlutusTx.makeIsDataIndexed ''StringEncoding [
     ('Ascii, 0),
     ('Utf8,  1),
-    ('Utf16, 2),
-    ('Utf32, 3),
-    ('Hex,   4)
+    ('Hex,   3)
   ]
 
 PlutusTx.makeIsDataIndexed ''NumberType [
@@ -253,7 +259,9 @@ PlutusTx.makeIsDataIndexed ''Definitions [
     ('DataSourceLayeredImage, 10),
     ('DataSourceFile, 11),
     ('DataSourceFiles, 12),
-    ('SubDefinitions, 13)
+    ('ConstantNumber, 13),
+    ('ConstantString, 14),
+    ('SubDefinitions, 15)
   ]
 
 PlutusTx.unstableMakeIsData ''Blueprint
